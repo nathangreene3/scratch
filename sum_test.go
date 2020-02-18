@@ -19,7 +19,7 @@ func TestSums(t *testing.T) {
 	for n := 0; n < 8; n++ {
 		var (
 			values = intsModN(n)
-			exp    = (n*n - n) / 2 // 1 + 2 + ... + (n-1) = (n^2 - n)/2
+			exp    = (n*n - n) / 2 // 0 + 1 + ... + (n-1) = (n^2 - n)/2
 			rec    = map[string]int{
 				"sum0": sum0(values),
 				"sum1": sum1(values),
@@ -112,9 +112,9 @@ func BenchmarkSums(b *testing.B) {
 
 func benchmarkSumSlice(b *testing.B, fnName string, sum func(values []int) int, values []int) {
 	b.Run(
-		fnName+", len = "+strconv.Itoa(len(values)),
-		func(b1 *testing.B) {
-			for j := 0; j < b1.N; j++ {
+		fnName+" len "+strconv.Itoa(len(values)),
+		func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
 				_ = sum(values)
 			}
 		},
@@ -123,9 +123,9 @@ func benchmarkSumSlice(b *testing.B, fnName string, sum func(values []int) int, 
 
 func benchmarkSumVariadic(b *testing.B, fnName string, sum func(values ...int) int, values []int) {
 	b.Run(
-		fnName+", len = "+strconv.Itoa(len(values)),
-		func(b1 *testing.B) {
-			for j := 0; j < b1.N; j++ {
+		fnName+" len "+strconv.Itoa(len(values)),
+		func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
 				_ = sum(values...)
 			}
 		},
