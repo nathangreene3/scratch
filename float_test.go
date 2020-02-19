@@ -27,29 +27,45 @@ func TestMakeFloat32(t *testing.T) {
 }
 
 func TestToBits(t *testing.T) {
-	var (
-		fs       = "0.9"
-		f64, err = strconv.ParseFloat(fs, 64)
-	)
+	fs := "11.99999"
 
+	f64, err := strconv.ParseFloat(fs, 32)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Fatalf("\n%s as ...\n"+
-		"float32: %s\n"+
-		"float64: %s\n"+
-		"32 bits: %v\n"+
-		"64 bits: %v\n",
+	f32 := float32(f64)
+	t.Errorf(
+		"\n%s as ...\n"+
+			"        float32: %s\n"+
+			"        float64: %s\n"+
+			"        32 bits: %v\n"+
+			"        64 bits: %v\n"+
+			"back to float32: %s\n"+
+			"back to float64: %s\n",
+		fs,
+		strconv.FormatFloat(float64(f32), 'f', -1, 32),
+		strconv.FormatFloat(float64(f32), 'f', -1, 64),
+		toBits(f32),
+		toBits(float64(f32)),
+		strconv.FormatFloat(float64(toFloat32(toBits(f32))), 'f', -1, 32),
+		strconv.FormatFloat(toFloat64(toBits(float64(f32))), 'f', -1, 64),
+	)
+
+	t.Errorf(
+		"\n%s as ...\n"+
+			"        float32: %s\n"+
+			"        float64: %s\n"+
+			"        32 bits: %v\n"+
+			"        64 bits: %v\n"+
+			"back to float32: %s\n"+
+			"back to float64: %s\n",
 		fs,
 		strconv.FormatFloat(f64, 'f', -1, 32),
 		strconv.FormatFloat(f64, 'f', -1, 64),
 		toBits(float32(f64)),
 		toBits(f64),
+		strconv.FormatFloat(float64(toFloat32(toBits(float32(f64)))), 'f', -1, 32),
+		strconv.FormatFloat(toFloat64(toBits(f64)), 'f', -1, 64),
 	)
-}
-
-func TestInt(t *testing.T) {
-	n := int(uint(1<<32 - 1))
-	t.Fatal(int(int32(n)) == n, int(int64(n)) == n)
 }

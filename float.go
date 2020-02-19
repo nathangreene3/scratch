@@ -6,10 +6,16 @@ import (
 )
 
 const (
-	// max32BitPow2 (2^32-1) is the largest power of two possible in 32 bits.
+	// max8BitPow2 (2^8) is the largest power of two possible in 8 bits.
+	max8BitPow2 = uint8(1 << 7)
+
+	// max16BitPow2 (2^16) is the largest power of two possible in 16 bits.
+	max16BitPow2 = uint16(1 << 15)
+
+	// max32BitPow2 (2^32) is the largest power of two possible in 32 bits.
 	max32BitPow2 = uint32(1 << 31)
 
-	// max64BitPow2 (2^64-1) is the largest power of two possible in 64 bits.
+	// max64BitPow2 (2^64) is the largest power of two possible in 64 bits.
 	max64BitPow2 = uint64(1 << 63)
 )
 
@@ -44,87 +50,74 @@ func toBits(n interface{}) []byte {
 	}
 }
 
-func to32Bits(n uint32) []byte {
-	b32 := make([]byte, 0, 32)
-	for p := uint32(1); 0 < p && p <= max32BitPow2; p <<= 1 {
+func to8Bits(n uint8) []byte {
+	b := make([]byte, 0, 8)
+	for p := uint8(1); 0 < p && p <= max8BitPow2; p <<= 1 {
 		if p&n == p {
-			b32 = append(b32, 1)
+			b = append(b, 1)
 		} else {
-			b32 = append(b32, 0)
+			b = append(b, 0)
 		}
 	}
 
-	return b32
+	return b
+}
+
+func to16Bits(n uint8) []byte {
+	b := make([]byte, 0, 16)
+	for p := uint8(1); 0 < p && p <= max8BitPow2; p <<= 1 {
+		if p&n == p {
+			b = append(b, 1)
+		} else {
+			b = append(b, 0)
+		}
+	}
+
+	return b
+}
+
+func to32Bits(n uint32) []byte {
+	b := make([]byte, 0, 32)
+	for p := uint32(1); 0 < p && p <= max32BitPow2; p <<= 1 {
+		if p&n == p {
+			b = append(b, 1)
+		} else {
+			b = append(b, 0)
+		}
+	}
+
+	return b
 }
 
 func to64Bits(n uint64) []byte {
-	b64 := make([]byte, 0, 64)
+	b := make([]byte, 0, 64)
 	for p := uint64(1); 0 < p && p <= max64BitPow2; p <<= 1 {
 		if p&n == p {
-			b64 = append(b64, 1)
+			b = append(b, 1)
 		} else {
-			b64 = append(b64, 0)
+			b = append(b, 0)
 		}
 	}
 
-	return b64
+	return b
 }
 
 func toFloat32(b32 []byte) float32 {
-	var (
-		f32Bits uint32
-		p       = uint32(1)
-	)
-
-	for i := range b32 {
-		switch b32[i] {
-		case 0:
-		case 1:
-			f32Bits |= p
-		default:
-			panic(fmt.Sprintf("%d at index %d is invalid", b32[i], i))
-		}
-
-		p <<= 1
-	}
-
-	return math.Float32frombits(f32Bits)
+	return math.Float32frombits(toUInt32(b32))
 }
 
-func toFloat64(b64 []byte) float32 {
-	var (
-		fBits uint32
-		p     = uint32(1)
-	)
-
-	for i := range b64 {
-		switch b64[i] {
-		case 0:
-		case 1:
-			fBits |= p
-		default:
-			panic(fmt.Sprintf("%d at index %d is invalid", b64[i], i))
-		}
-
-		p <<= 1
-	}
-
-	return math.Float32frombits(fBits)
+func toFloat64(b64 []byte) float64 {
+	return math.Float64frombits(toUInt64(b64))
 }
 
 func toInt(b []byte) int {
-	var (
-		sgnIndex = len(b) - 1
-		n        = int(toUInt(b[:sgnIndex]))
-	)
-
-	switch v := b[sgnIndex]; v {
+	switch b[len(b)-1] {
 	case 0:
-		return n
+		return int(toUInt(b))
 	case 1:
-		return -n
+		return -int(toUInt(b[:len(b)-1]))
 	default:
-		panic(fmt.Sprintf("%d at index %d is invalid", v, sgnIndex))
+		panic("")
 	}
 }
 
@@ -150,6 +143,10 @@ func toUInt(b []byte) uint {
 }
 
 func toUInt32(b32 []byte) uint32 {
+	if len(b32) != 32 {
+		panic("invalid length")
+	}
+
 	var (
 		x uint32
 		p = uint32(1)
@@ -171,6 +168,10 @@ func toUInt32(b32 []byte) uint32 {
 }
 
 func toUInt64(b64 []byte) uint64 {
+	if len(b64) != 64 {
+		panic("invalid length")
+	}
+
 	var (
 		x uint64
 		p = uint64(1)
